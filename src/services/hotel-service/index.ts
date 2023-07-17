@@ -4,6 +4,26 @@ import { notFoundError } from '@/errors';
 import hotelsRepository from '@/repositories/hotel-repository';
 import ticketsRepository from '@/repositories/tickets-repository';
 
+async function findAvailableHotelById(userId: number, hotelId: number) {
+  await checkValidHotel(userId);
+
+  const hotelWithRooms = await hotelsRepository.findAvailableHotelById(hotelId);
+  if (!hotelWithRooms) throw notFoundError();
+  const { id, name, image, createdAt, updatedAt, Rooms } = hotelWithRooms;
+  return {
+    id,
+    name,
+    image,
+    createdAt: createdAt.toISOString(),
+    updatedAt: updatedAt.toISOString(),
+    Rooms: Rooms.map((room: any) => ({
+      ...room,
+      createdAt: room.createdAt.toISOString(),
+      updatedAt: room.updatedAt.toISOString(),
+    })),
+  };
+}
+
 async function findHotel(userId: number) {
   const enrollment = await enrollmentsService.findEnrollmentByUserId(userId);
   if (!enrollment) throw notFoundError();
@@ -21,33 +41,13 @@ async function findHotel(userId: number) {
   return hotels;
 }
 
-async function findAvailableHotelById(userId: number, hotelId: number) {
+async function checkValidHotel(userId: number) {
   await findHotel(userId);
-
-  const hotelWithRooms = await hotelsRepository.findAvailableHotelById(hotelId);
-  if (!hotelWithRooms) throw notFoundError();
-  const { id, name, image, createdAt, updatedAt, Rooms } = hotelWithRooms;
-  return {
-    id,
-    name,
-    image,
-    createdAt: createdAt.toISOString(),
-    updatedAt: updatedAt.toISOString(),
-    Rooms:
-      Rooms.length > 0
-        ? Rooms.map((room: any) => {
-            return {
-              ...room,
-              createdAt: room.createdAt.toISOString(),
-              updatedAt: room.updatedAt.toISOString(),
-            };
-          })
-        : [],
-  };
 }
+
 const hotelsService = {
-  findHotel,
   findAvailableHotelById,
+  findHotel,
 };
 
 export default hotelsService;

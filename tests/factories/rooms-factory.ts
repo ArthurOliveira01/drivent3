@@ -4,7 +4,7 @@ import { prisma } from '@/config';
 export async function generateRooms(hotelId: number) {
   return await prisma.room.create({
     data: {
-      hotelId,
+      hotelId: hotelId,
       capacity: faker.datatype.number(),
       name: faker.commerce.department(),
       createdAt: faker.date.recent(),
